@@ -16,13 +16,11 @@ O principal objetivo deste projeto é criar uma API que facilite o gerenciamento
 ## Tecnologias Utilizadas
 
 - **Backend**:
-  - [Fastify](https://www.fastify.io/) ou [Express](https://expressjs.com/) para criação da API.
+  - [Fastify](https://www.fastify.io/) para criação da API.
 - **Banco de Dados**:
-  - [MongoDB](https://www.mongodb.com/) ou [PostgreSQL](https://www.postgresql.org/) para armazenar os dados dos livros e usuários.
+  - [PostgreSQL](https://www.postgresql.org/) para armazenar os dados dos livros e usuários.
 - **Autenticação**:
   - [JWT (JSON Web Token)](https://jwt.io/) para gerenciar sessões de usuários e proteger rotas sensíveis.
-
-## Estrutura do Banco de Dados
 
 ### Modelo de Livro
 
@@ -35,4 +33,5 @@ O principal objetivo deste projeto é criar uma API que facilite o gerenciamento
 ### Modelo de Usuário
 
 - **Nome de usuário**: Nome único do usuário.
+- **Email do usuario**: Email único do usuario
 - **Senha**: Senha para autenticação.
