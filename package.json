@@ -1,11 +1,14 @@
 {
   "dependencies": {
-    "fastify": "^5.0.0"
+    "@supabase/supabase-js": "^2.45.6",
+    "dotenv": "^16.4.5",
+    "fastify": "^5.0.0",
+    "zod": "^3.23.8"
   },
   "name": "gestaolivros",
   "version": "0.0.0",
   "description": "Este projeto é um **sistema de gestão de livros** que permite aos usuários gerenciar um catálogo de livros de forma eficiente. O sistema oferece funcionalidades para adicionar, editar, remover e visualizar livros, além de permitir que os usuários deixem avaliações e resenhas.",
-  "main": "main.js",  
+  "main": "main.js",
   "type": "module",
   "scripts": {
     "dev": "node --watch dist/main.js"
