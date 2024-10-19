@@ -1,10 +1,9 @@
 import fastify from 'fastify';
+import { UserRoutes } from './routes/userRoutes';
 
 const app = fastify();
 
-app.get('/user', (request, reply) => {
-  return reply.send('Hello, Wold');
-});
+app.register(UserRoutes);
 
 app.listen(
   {
