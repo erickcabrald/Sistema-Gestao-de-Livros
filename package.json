@@ -3,6 +3,7 @@
     "@supabase/supabase-js": "^2.45.6",
     "dotenv": "^16.4.5",
     "fastify": "^5.0.0",
+    "jsonwebtoken": "^9.0.2",
     "zod": "^3.23.8"
   },
   "name": "gestaolivros",
@@ -15,5 +16,8 @@
   },
   "keywords": [],
   "author": "Erick",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.7"
+  }
 }
