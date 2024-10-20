@@ -1,6 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import supabase from '../config/supabaseClient';
+import { createToken } from 'src/utils/jwt';
 import { z } from 'zod';
+
 export function UserRoutes(app: FastifyInstance) {
   //Criação de Usuarios
   app.post('/user', async (request, reply) => {
@@ -35,6 +37,40 @@ export function UserRoutes(app: FastifyInstance) {
     return reply
       .status(200)
       .send({ message: 'Usuario criado com sucesso', data });
+  });
+
+  app.post('/login', async (request, reply) => {
+    // Schema de validação com Zod
+    const Schema = z.object({
+      email: z.string().email({ message: 'Formato de email inválido' }),
+      password: z
+        .string()
+        .min(8, { message: 'Senha deve ter pelo menos 8 caracteres' }),
+    });
+
+    // Validando o request.body
+    const result = Schema.safeParse(request.body);
+
+    if (!result.success) {
+      return reply.status(400).send({ error: result.error.format() });
+    }
+
+    const { email, password } = result.data;
+
+    // Autenticação com Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error || !data.user) {
+      return reply.status(401).send({ error: 'Email ou senha inválidos' });
+    }
+
+    // Cria o token JWT
+    const token = createToken(data.user.id); // Use o ID do usuário retornado pelo Supabase
+
+    return reply.send({ token });
   });
 
   //Leitura de Usuarios
