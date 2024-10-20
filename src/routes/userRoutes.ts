@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import supabase from '../config/supabaseClient';
-import { createToken } from 'src/utils/jwt';
+import { createToken, verifyToken } from '../utils/jwt';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
 
@@ -20,8 +20,10 @@ export function UserRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: result.error.format() });
     }
     const { name, age, email, password } = result.data;
+
     // 1. Criação do hash da senha
     const hashedPassword = await bcrypt.hash(password, 10); // (senha, número de rounds)
+
     const { data, error } = await supabase.from('users').insert({
       name,
       email,
@@ -41,11 +43,14 @@ export function UserRoutes(app: FastifyInstance) {
         .string()
         .min(8, { message: 'Senha deve ter pelo menos 8 caracteres' }),
     });
+
     const result = Schema.safeParse(request.body);
     if (!result.success) {
       return reply.status(400).send({ error: result.error.format() });
     }
+
     const { email, password } = result.data;
+
     // 1. Busca o usuário no banco de dados
     const { data: users, error } = await supabase
       .from('users')
@@ -54,12 +59,14 @@ export function UserRoutes(app: FastifyInstance) {
     if (error || users.length === 0) {
       return reply.status(401).send({ error: 'Email ou senha inválidos' });
     }
+
     const user = users[0];
     // 2. Comparar a senha fornecida com o hash armazenado no banco de dados
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return reply.status(401).send({ error: 'Email ou senha inválidos' });
     }
+
     // Cria o token JWT
     const token = createToken(user.id); // Use o ID do usuário retornado pelo banco de dados
     return reply.send({ token });
@@ -73,7 +80,7 @@ export function UserRoutes(app: FastifyInstance) {
     return data;
   });
   //atualizando usuarios
-  app.put('/user/:id', async (request, reply) => {
+  app.put('/user/:id', { preHandler: verifyToken }, async (request, reply) => {
     const { id } = request.params as { id: any };
 
     const Schema = z.object({
@@ -114,17 +121,24 @@ export function UserRoutes(app: FastifyInstance) {
       .send({ message: 'Usuario atualizado com sucesso', data });
   });
 
-  app.delete('/user/:id', async (request, reply) => {
-    const { id } = request.params as { id: any };
+  app.delete(
+    '/user/:id',
+    { preHandler: verifyToken },
+    async (request, reply) => {
+      const { id } = request.params as { id: any };
 
-    const { data, error } = await supabase.from('users').delete().match({ id });
+      const { data, error } = await supabase
+        .from('users')
+        .delete()
+        .match({ id });
 
-    if (error) {
-      reply.status(404).send({ message: 'Usuario não encontrado' });
-      throw error;
-    }
-    return reply
-      .status(200)
-      .send({ message: 'Usuario deletado com sucesso', data });
-  });
+      if (error) {
+        reply.status(404).send({ message: 'Usuario não encontrado' });
+        throw error;
+      }
+      return reply
+        .status(200)
+        .send({ message: 'Usuario deletado com sucesso', data });
+    },
+  );
 }
