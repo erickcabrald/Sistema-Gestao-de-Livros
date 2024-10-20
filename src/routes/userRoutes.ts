@@ -2,11 +2,11 @@ import { FastifyInstance } from 'fastify';
 import supabase from '../config/supabaseClient';
 import { createToken } from 'src/utils/jwt';
 import { z } from 'zod';
+import bcrypt from 'bcrypt';
 
 export function UserRoutes(app: FastifyInstance) {
   //Criação de Usuarios
   app.post('/user', async (request, reply) => {
-    // Schema de validação zod
     const Schema = z.object({
       name: z.string().min(4, { message: 'Name is required' }),
       age: z.number().min(12, { message: 'Age must be at least 12' }),
@@ -15,61 +15,53 @@ export function UserRoutes(app: FastifyInstance) {
         message: 'Password must be at least 8 characters',
       }),
     });
-
-    // Validando o request.body
     const result = Schema.safeParse(request.body);
-
     if (!result.success) {
       return reply.status(400).send({ error: result.error.format() });
     }
-
     const { name, age, email, password } = result.data;
-
+    // 1. Criação do hash da senha
+    const hashedPassword = await bcrypt.hash(password, 10); // (senha, número de rounds)
     const { data, error } = await supabase.from('users').insert({
-      name: result.data.name,
-      email: result.data.email,
-      password: result.data.password,
-      age: result.data.age,
+      name,
+      email,
+      password: hashedPassword, // Armazena o hash da senha no banco de dados
+      age,
     });
-
     if (error) throw error;
-
     return reply
       .status(200)
       .send({ message: 'Usuario criado com sucesso', data });
   });
 
   app.post('/login', async (request, reply) => {
-    // Schema de validação com Zod
     const Schema = z.object({
       email: z.string().email({ message: 'Formato de email inválido' }),
       password: z
         .string()
         .min(8, { message: 'Senha deve ter pelo menos 8 caracteres' }),
     });
-
-    // Validando o request.body
     const result = Schema.safeParse(request.body);
-
     if (!result.success) {
       return reply.status(400).send({ error: result.error.format() });
     }
-
     const { email, password } = result.data;
-
-    // Autenticação com Supabase
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error || !data.user) {
+    // 1. Busca o usuário no banco de dados
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email);
+    if (error || users.length === 0) {
       return reply.status(401).send({ error: 'Email ou senha inválidos' });
     }
-
+    const user = users[0];
+    // 2. Comparar a senha fornecida com o hash armazenado no banco de dados
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return reply.status(401).send({ error: 'Email ou senha inválidos' });
+    }
     // Cria o token JWT
-    const token = createToken(data.user.id); // Use o ID do usuário retornado pelo Supabase
-
+    const token = createToken(user.id); // Use o ID do usuário retornado pelo banco de dados
     return reply.send({ token });
   });
 
