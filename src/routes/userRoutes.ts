@@ -85,4 +85,18 @@ export function UserRoutes(app: FastifyInstance) {
       .status(200)
       .send({ message: 'Usuario atualizado com sucesso', data });
   });
+
+  app.delete('/user/:id', async (request, reply) => {
+    const { id } = request.params as { id: any };
+
+    const { data, error } = await supabase.from('users').delete().match({ id });
+
+    if (error) {
+      reply.status(404).send({ message: 'Usuario não encontrado' });
+      throw error;
+    }
+    return reply
+      .status(200)
+      .send({ message: 'Usuario deletado com sucesso', data });
+  });
 }
