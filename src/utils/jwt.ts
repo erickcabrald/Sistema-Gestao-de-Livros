@@ -12,11 +12,27 @@ export function createToken(userId: string) {
   return token;
 }
 
-export function verifyToken(token: string) {
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET as string);
-    return decoded; // Retorna os dados decodificados do token
-  } catch (error) {
-    return null; // Se a verificação falhar, retorna null
+import { FastifyRequest, FastifyReply } from 'fastify';
+
+export function verifyToken(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  done: Function,
+) {
+  const authHeader = request.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return reply.status(401).send({ error: 'Token não fornecido' });
   }
+
+  jwt.verify(token, JWT_SECRET as string, (err, decoded) => {
+    if (err) {
+      return reply.status(403).send({ error: 'Token inválido' });
+    }
+
+    // Adicione o usuário decodificado ao objeto request para uso em rotas
+    request.user = decoded; // Isso permite que você acesse os dados do usuário nas rotas
+    done(); // Chama a função 'done' para continuar o processamento da rota
+  });
 }
