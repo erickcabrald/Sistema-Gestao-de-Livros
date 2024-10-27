@@ -1,23 +1,23 @@
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import { FastifyRequest, FastifyReply } from 'fastify';
 
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Função para criar um token JWT para o usuário
 export function createToken(userId: string) {
   const token = jwt.sign({ id: userId }, JWT_SECRET as string, {
-    expiresIn: '2d', // Tempo de expiração do token 2dias
+    expiresIn: '2d', // Tempo de expiração do token: 2 dias
   });
   return token;
 }
 
-import { FastifyRequest, FastifyReply } from 'fastify';
-
-export function verifyToken(
+// Função middleware para verificar o token JWT
+export async function verifyToken(
   request: FastifyRequest,
   reply: FastifyReply,
-  done: Function,
 ) {
   const authHeader = request.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -26,13 +26,11 @@ export function verifyToken(
     return reply.status(401).send({ error: 'Token não fornecido' });
   }
 
-  jwt.verify(token, JWT_SECRET as string, (err, decoded) => {
-    if (err) {
-      return reply.status(403).send({ error: 'Token inválido' });
-    }
-
-    // Adicione o usuário decodificado ao objeto request para uso em rotas
-    request.user = decoded; // Isso permite que você acesse os dados do usuário nas rotas
-    done(); // Chama a função 'done' para continuar o processamento da rota
-  });
+  try {
+    // Verifica e decodifica o token
+    const decoded = jwt.verify(token, JWT_SECRET as string);
+    request.user = decoded; // Adiciona o usuário decodificado ao objeto request
+  } catch (err) {
+    return reply.status(403).send({ error: 'Token inválido' });
+  }
 }
