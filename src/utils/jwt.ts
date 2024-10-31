@@ -18,6 +18,7 @@ export function createToken(userId: string) {
 export async function verifyToken(
   request: FastifyRequest,
   reply: FastifyReply,
+  done: Function, // Adiciona o callback `done`
 ) {
   const authHeader = request.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -30,6 +31,7 @@ export async function verifyToken(
     // Verifica e decodifica o token
     const decoded = jwt.verify(token, JWT_SECRET as string);
     request.user = decoded; // Adiciona o usuário decodificado ao objeto request
+    done(); // Permite que o fluxo continue após a verificação
   } catch (err) {
     return reply.status(403).send({ error: 'Token inválido' });
   }
