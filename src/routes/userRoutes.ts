@@ -1,8 +1,10 @@
+// Frameworks e blibliotecas
 import { FastifyInstance } from 'fastify';
-import supabase from '../config/supabaseClient';
-import { createToken, verifyToken } from '../utils/jwt';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
+// Import de funções e outros
+import supabase from '../config/supabaseClient';
+import { createToken, verifyToken } from '../utils/jwt';
 
 export function UserRoutes(app: FastifyInstance) {
   //Criação de Usuarios
@@ -80,8 +82,8 @@ export function UserRoutes(app: FastifyInstance) {
     return data;
   });
   //atualizando usuarios
-  app.put('/user/:id', { preHandler: verifyToken }, async (request, reply) => {
-    const { id } = request.params as { id: any };
+  app.put('/user', { preHandler: verifyToken }, async (request, reply) => {
+    const { id } = request.user;
 
     const Schema = z.object({
       name: z.string().min(4, { message: 'Name is required' }).optional(),
@@ -105,40 +107,26 @@ export function UserRoutes(app: FastifyInstance) {
 
     const { name, age, password } = result.data;
 
-    const { data, error } = await supabase
-      .from('users')
-      .update({
+    const { data, error } = await supabase.from('users').update({
         name: result.data.name,
         age: result.data.age,
         password: result.data.password,
-      })
-      .match({ id });
+      }).match({ id });
 
     if (error) throw error;
 
-    return reply
-      .status(200)
-      .send({ message: 'Usuario atualizado com sucesso', data });
+    return reply.status(200).send({ message: 'Usuario atualizado com sucesso', data });
   });
 
-  app.delete(
-    '/user/:id',
-    { preHandler: verifyToken },
-    async (request, reply) => {
-      const { id } = request.params as { id: any };
+  app.delete('/user', { preHandler: verifyToken }, async (request, reply) => {
+    const { id } = request.user;
 
-      const { data, error } = await supabase
-        .from('users')
-        .delete()
-        .match({ id });
+    const { data, error } = await supabase.from('users').delete().match({ id });
 
-      if (error) {
-        reply.status(404).send({ message: 'Usuario não encontrado' });
-        throw error;
-      }
-      return reply
-        .status(200)
-        .send({ message: 'Usuario deletado com sucesso', data });
-    },
-  );
+    if (error) {
+      reply.status(404).send({ message: 'Usuario não encontrado' });
+      throw error;
+    }
+    return reply.status(200).send({ message: 'Usuario deletado com sucesso', data });
+  });
 }
