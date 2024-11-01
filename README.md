@@ -1,6 +1,6 @@
 # Sistema de Gestão de Livros
 
-Este projeto é um **sistema de gestão de livros** que permite aos usuários gerenciar um catálogo de livros de forma eficiente. O sistema oferece funcionalidades para adicionar, editar, remover e visualizar livros, além de permitir que os usuários deixem avaliações e resenhas.
+Este projeto é uma API de **sistema de gestão de livros** que permite aos usuários gerenciar um catálogo de livros de forma eficiente. O sistema oferece funcionalidades para adicionar, editar, remover e visualizar livros, além de permitir que os usuários deixem avaliações e resenhas.
 
 ## Objetivo
 
@@ -18,9 +18,11 @@ O principal objetivo deste projeto é criar uma API que facilite o gerenciamento
 - **Backend**:
   - [Fastify](https://www.fastify.io/) para criação da API.
 - **Banco de Dados**:
-  - [PostgreSQL](https://www.postgresql.org/) para armazenar os dados dos livros e usuários.
+  - [PostgreSQL no SuaBase](https://supabase.com/) para armazenar os dados dos livros e usuários.
 - **Autenticação**:
   - [JWT (JSON Web Token)](https://jwt.io/) para gerenciar sessões de usuários e proteger rotas sensíveis.
+- **Validação de dados**:
+  - [Zod](https://zod.dev/) para validar os dados dos livros e usuários
 
 ### Modelo de Livro
 
