@@ -17,7 +17,7 @@ export function BookRoutes(app: FastifyInstance) {
       author_book: z.string().min(4, { message: 'author is required' }),
       publication_year: z.number().refine((year) => year <= new Date().getUTCFullYear(), {
       message: 'O ano de publicação não pode ser maior que o atual',})
-    });
+    }); 
 
     const result = Schema.safeParse(request.body);
     if (!result.success) {
