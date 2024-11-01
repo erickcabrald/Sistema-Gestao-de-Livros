@@ -16,8 +16,11 @@ export function BookRoutes(app: FastifyInstance) {
       title_book: z.string().min(1, { message: 'title is required' }),
       author_book: z.string().min(4, { message: 'author is required' }),
       publication_year: z.number().refine((year) => year <= new Date().getUTCFullYear(), {
-      message: 'O ano de publicação não pode ser maior que o atual',})
-    }); 
+        message: 'O ano de publicação não pode ser maior que o atual',
+      }),
+      genre: z.string().min(1, { message: 'genre is required' }), // Adicionando a validação de gênero
+    });
+    
 
     const result = Schema.safeParse(request.body);
     if (!result.success) {
@@ -29,7 +32,9 @@ export function BookRoutes(app: FastifyInstance) {
       author: result.data.author_book,
       publication_year: result.data.publication_year,
       user_id: userId,
+      genre: result.data.genre, // Adicionando o gênero na inserção
     });
+    
 
     if (error) {
       return reply.status(500).send({ error: 'Erro ao salvar o livro' });
@@ -67,10 +72,12 @@ export function BookRoutes(app: FastifyInstance) {
     const Schema = z.object({
       title_book: z.string().min(1, { message: 'title is required' }).optional(),
       author_book: z.string().min(4, { message: 'author is required' }).optional(),
-      publication_year: z.number()
-      .refine((year) => year <= new Date().getUTCFullYear(), {message: 'O ano de publicação não pode ser maior que o atual',
-        }).optional(),
+      publication_year: z.number().refine((year) => year <= new Date().getUTCFullYear(), {
+        message: 'O ano de publicação não pode ser maior que o atual',
+      }).optional(),
+      genre: z.string().min(1).optional(), // Adicionando a validação de gênero como opcional
     });
+    
 
     const result = Schema.safeParse(request.body);
 
@@ -79,10 +86,12 @@ export function BookRoutes(app: FastifyInstance) {
     }
 
     const { data, error } = await supabase.from('books').update({
-        title: result.data.title_book,
-        author: result.data.author_book,
-        publication_year: result.data.publication_year,
-      }).match({ id });
+      title: result.data.title_book,
+      author: result.data.author_book,
+      publication_year: result.data.publication_year,
+      genre: result.data.genre, // Adicionando o gênero na atualização
+    }).match({ id });
+    
 
     if (error) throw error;
 
